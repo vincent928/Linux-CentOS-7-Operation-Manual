@@ -54,7 +54,7 @@ yum install -y vsftpd
 yum安装的ftp配置文件位置为`/etc/vsftpd`，有如下文件：
 ```shell
 /etc/vsftpd/ftpusers      #黑名单配置文件,不允许访问ftp服务器的用户列表
-/etc/vsftpd/user_list     #白名单配置文件,允许访问ftp服务器的用户列表
+/etc/vsftpd/user_list     #控制访问ftp服务器的用户列表
 /etc/vsftpd/vsftpd.conf   #核心配置文件
 /etc/vsftpd/vsftpd_conf_migrate.sh
 ```
@@ -78,8 +78,7 @@ vsftpd安装完成以后，默认配置为：
 
 1.修改`/etc/vsftpd/vsftpd.conf`的配置文件,赋予匿名FTP更多功能
 ```shell
-#是否允许
-写权限
+#是否允许写权限
 write_enable=YES
 #是否允许匿名用户上传文件
 anon_upload_enable=YES
@@ -93,7 +92,6 @@ systemctl restart vsftpd.service
 * **配置本地用户登录**
 
 本地用户登录就是指用户使用Linux操作系统中的用户账号和密码登录FTP服务器。
-vsftpd安装后,默认匿名登录。使用本地用户登录，则需要配置。
 ```shell
 #创建本地用户
 useradd ftpuser
@@ -120,6 +118,7 @@ anon_root=/var/ftp|匿名用户登录时的目录,默认为/var/ftp。/ftp该目
 local_enable=YES|是否允许本地用户登录。默认为YES
 local_root=/home/user|本地用户登录时,将进入设置目录,默认值为各用户的home目录
 ftp_username=ftp|定义匿名登录用户名称,默认为ftp
+
 **用户权限相关**
 
 参数|说明
@@ -134,12 +133,15 @@ anon_other_write_enable=NO|是否允许匿名用户删除或重命名,前提同�
 anon_world_readable_only=YES|是否允许匿名用户下载可阅读档案,默认为YES
 chown_username=ftptest|匿名上传文件(非目录)所属用户名,建议不要设置为root
 chown_upload=NO|是否允许改变匿名用户上传文件(非目录)的属主。默认为NO
+
 **目录切换相关**
+
 参数|说明
 -|-
 chroot_list_enable=NO|是否启用chroot_list_file配置项指定的用户列表文件。默认值为NO
 chroot_list_file=/etc/vsftpd/chroot_list|用户列表文件,控制哪些用户可以切换到用户home目录的上级目录。
 chroot_local_user=NO|用于指定用户列表中的用户是否允许切换到用户home目录的上级目录。默认值为NO
+
 **通过搭配能实现以下效果：**
 ① 当`chroot_list_enable=YES`并且`chroot_local_user=YES`时，在`/etc/vsftpd/chroot_list`文件中列出的用户，可以切换到其他目录；未在文件中列出的用户，不能切换到其他目录。
 ② 当`chroot_list_enable=YES`并且`chroot_local_user=NO`时，在`/etc/vsftpd/chroot_list`文件中列出的用户，不能切换到其他目录；未在文件中列出的用户，可以切换到其他目录。
@@ -147,6 +149,7 @@ chroot_local_user=NO|用于指定用户列表中的用户是否允许切换到�
 ④ 当`chroot_list_enable=NO`并且`chroot_local_user=NO`时，所有的用户均可以切换到其他目录。
 
 **其他相关**
+
 参数|说明
 -|-
 deny_email_enable=NO|若启用此功能,则必须提供一个文件/etc/vsftpd/banner_emails,内容为邮箱地址。若是使用匿名登录,则会要求输入邮箱地址。若邮箱地址存在文件中,则允许登录。默认值为NO
@@ -172,6 +175,7 @@ text_userdb_names=NO|设置在执行`ls -la`之类的命令时,是显示UID、GI
 ls_recurse_enable=NO|若是启用,则允许登录者使用`ls -R`(可以查看当前目录下子目录中的文件)这个指令。默认值为NO。
 hide_ids=NO|若是启用,则所有文件的拥有者与群组都为ftp。也就是使用者登入使用`ls -al`之类的指令,所有文件的拥有者与群组均为ftp。默认值为NO。
 download_enable=YES|文件是否能下载到本地,文件夹不受影响。默认值为YES。
+
 **FTP的工作方式与端口设置**
 FTP有两种工作方式：`PORT FTP`(主动模式) 和`PASV FTP`(被动模式)
 
@@ -188,6 +192,7 @@ max_clients=0|设置vsftpd允许的最大连接数。0表示不受限制。默�
 max_per_ip=0|设置每个IP允许与FTP服务器同时建立连接的数目。0表示不受限制。默认值为0。只有在standalone模式才有效。
 listen_address=xxx.xxx.xxx.xxx|设置FTP服务器在指定的IP地址上侦听用户的FTP请求。若不设置,则对服务器绑定的所有IP地址进行侦听。只有在standalone模式才有效。
 setproctitle_enable=NO|设置每个与FTP服务器的连接,是否以不同的进程表现出来。默认值为NO。此时查看vsftpd进程只有一个。若为YES,则每一个连接都有一个对应的vsftpd的进程。
+
 **虚拟用户设置**
 虚拟用户使用PAM认证方式。
 
@@ -197,6 +202,7 @@ pam_service_name=vsftpd|设置PAM使用的名称,默认值为/etc/pam.d/vsftpd
 guest_enable=NO|是否启用虚拟用户。默认值为NO。
 guest_username=ftp|用于映射虚拟用户。默认值为ftp。
 virtual_use_local_privs=NO|当启用该项时,虚拟用户使用与本地用户相同的权限。否则与匿名用户相同权限。默认值为NO
+
 ### 6.安全组设置
 ECS实例安全组需要设置入方向FTP端口放行
 
