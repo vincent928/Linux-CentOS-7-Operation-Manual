@@ -1,5 +1,5 @@
 # Linux __CentOS 7 操作手册
- 
+ ![](https://github.com/vincent928/Linux-CentOS-7-Operation-Manual/blob/master/pic/linux.jpg)
 [TOC] 
 
 
