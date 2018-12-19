@@ -4,7 +4,6 @@
 * [Linux __CentOS 7 Operation Manual](#linux-__centos-7-operation-manual)
   * [一.基本指令](#一基本指令)
     * [1.进程服务相关操作](#1进程服务相关操作)
-* [查看监听端口号与对应服务名称](#查看监听端口号与对应服务名称)
     * [2.file相关操作](#2file相关操作)
     * [3.vim相关操作](#3vim相关操作)
   * [二.MySQL5.7 安装](#二mysql57-安装)
