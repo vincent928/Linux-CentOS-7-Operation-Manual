@@ -118,6 +118,9 @@ anon_root=/var/ftp|匿名用户登录时的目录,默认为/var/ftp。/ftp该目
 local_enable=YES|是否允许本地用户登录。默认为YES
 local_root=/home/user|本地用户登录时,将进入设置目录,默认值为各用户的home目录
 ftp_username=ftp|定义匿名登录用户名称,默认为ftp
+userlist_file=/etc/vsftpd/user_list|控制用户访问的文件,记录用户名
+userlist_enable=NO|是否启用userlist_file文件
+userlist_deny=YES|决定userlist_file中的用户是否能访问ftp服务器。若设置为YES,则文件中的用户不能访问,NO则只有文件中的用户才能访问ftp服务器。默认值为YES。注意:/etc/vsftpd/ftpusers文件的优先级更高。黑名单中无法访问的用户则一定无法访问。
 
 **用户权限相关**
 
