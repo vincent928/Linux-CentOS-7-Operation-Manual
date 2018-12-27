@@ -42,18 +42,20 @@
 
 ## 一.基本指令
 ### 1.进程服务相关操作
-systemctl
-```shell
-#服务开启
-systemctl start xxx.service
-#服务状态
-systemctl status xxx.service
-#服务重启
-systemctl restart xxx.service
-#服务开机自启
-systemctl enable xxx.service
-```
-netstat
+
+**systemctl就是service和chkconfig这两个命令的整合**
+
+任务|旧指令|新指令
+-|-|-
+A服务自启|chkconfig --level 3 A on|systemctl enable A.service
+A服务不自启|chkconfig --level 3 A off|systemctl disable A.service
+显示所有已启动的服务|chkconfig --list|systemctl list-units --type=service
+A服务启动|service A start|systemctl start A.service
+A服务状态|service A status|systemctl status A.service
+A服务停止|service A stop|systemctl stop A.service
+A服务重启|service A restart|systemctl restart A.service
+
+**netstat**
 ```shell
 # 查看监听端口号与对应服务名称
 netstat -antp
@@ -61,11 +63,26 @@ netstat -antp
 ### 2.file相关操作
 ![](https://github.com/vincent928/Linux-CentOS-7-Operation-Manual/blob/master/pic/filesystem.png)
 (https://www.cnblogs.com/123-/p/4189072.html)
+
+**tar** : **文件压缩解压缩相关**
+```shell
+*.tar          用 tar -xvf 解压
+*.tar.gz/*.tgz 用 tar -zxzf 解压
+*.tar.bz2      用 tar -xjf 解压
+*.tar.Z        用 tar -xZf 解压
+*.gz           用 gzip -d 或者 gunzip 解压
+*.bz2          用 bzip2 -d 或者 bunzip2 解压
+*.Z            用 uncompress 解压
+*.rar          用 unrar e解压
+*.zip          用 unzip 解压
+```
+
 ### 3.vim相关操作
 (https://blog.csdn.net/hongwei15732623364/article/details/80591140)
 ### 4.下载相关操作
+
+**wget** : **主要用于下载**
 ```shell
-#wget指令主要用于下载。
 wget [a] [c] url
 [a] : [c] : 说明
   -c : - : 继续下载部分下载的文件
@@ -73,7 +90,161 @@ wget [a] [c] url
   -b : - : 后台下载,可以使用 tail -f wget-log 查看进度
   -S : - : 打印服务器响应,模拟下载,非真实下载,用于检查请求地址的网络状态 
 ```
-## 二.MySQL5.7 安装
+### 5.用户相关操作
+
+**useradd** : **用于用户建立**
+```shell
+useradd [-mMnr][-c <备注>][-d <登入目录>][-e <有效期限>][-f <缓冲天数>][-g <群组>][-G <群组>][-s <shell>][-u <uid>][用户帐号]
+```
+**参数说明:**
+```shell
+-c <备注> 　   加上备注文字。备注文字会保存在passwd的备注栏位中。
+-d <登入目录>  指定用户登入时的启始目录。
+-D 　          变更预设值．
+-e <有效期限>  指定帐号的有效期限。
+-f <缓冲天数>  指定在密码过期后多少天即关闭该帐号。
+-g <群组>      指定用户所属的群组。
+-G <群组>      指定用户所属的附加群组。
+-m 　          自动建立用户的登入目录。
+-M 　          不要自动建立用户的登入目录。
+-n 　          取消建立以用户名称为名的群组．
+-r 　          建立系统帐号。
+-s <shell>　 　指定用户登入后所使用的shell。
+-u <uid> 　    指定用户ID。
+[用户账号]      用户名,例如mysqltest,rabbitmqtest,svntest等
+```
+
+## 二.MySQL5.7.24 安装
+### 0.卸载系统自带的数据库
+```shell
+rpm -qa | grep mariadb
+#mariadb-libs-5.5.52-1.el7.x86_64
+#卸载
+yum -y remove mariadb*
+```
+
+### 1.mysql5.7.24安装
+前往[官网](https://dev.mysql.com/downloads/mysql/5.7.html#downloads)下载5.7.24版本,CentOS则选择操作系统为`Linux-Generic`(Linux通用版本),64位还是32位自行选择。选择Compressed TAR Archive下载。或者使用wget直接下载
+```shell
+wget https://cdn.mysql.com//Downloads/MySQL-5.7/mysql-5.7.24-linux-glibc2.12-x86_64.tar.gz
+```
+将压缩包移动到`/usr/local`下,解压缩,并改名为mysql
+```shell
+mv mysql-5.7.24-linux-glibc2.12-x86_64.tar.gz /usr/local
+cd /usr/local
+#解压缩
+tar -zxvf mysql-5.7.24-linux-glibc2.12-x86_64.tar.gz
+#删除压缩包
+rm -f mysql-5.7.24-linux-glibc2.12-x86_64.tar.gz
+#重命名
+mv mysql-5.7.24-linux-glibc2.12-x86_64 /mysql
+```
+
+### 2.mysql用户添加
+添加mysql用户及用户组
+```shell
+#先检查是否有mysql用户及用户组
+groups mysql
+groupadd mysql
+useradd -r -g mysql mysql
+groups mysql
+#mysql : mysql
+#修改/usr/local/mysql所属用户
+chown -R mysql.mysql /usr/local/mysql/
+```
+
+### 3.配置mysql服务
+[理解Linux系统/etc/init.d目录和/etc/rc.local脚本](https://blog.csdn.net/acs713/article/details/7322082)
+```shell
+#添加到服务
+cp /usr/local/mysql/support-files/mysql.server /etc/init.d/mysqld
+vim /etc/init.d/mysqld
+```
+**添加mysql与data路径**
+```shell
+#大概在46行位置
+basedir = /usr/local/mysql
+datadir = /usr/local/mysql/data
+```
+```shell
+#设置开机自启
+chkconfig --add mysqld
+chkconfig mysqld on 
+```    
+### 4.配置mysql配置文件
+
+```shell
+cd /etc
+#创建配置文件
+vim my.cnf
+```
+**配置内容**
+```shell
+[client]
+port = 3306
+default-character-set = utf8
+socket = /tmp/mysql.sock
+
+[mysqld]
+basedir = /usr/local/mysql
+datadir = /usr/local/mysql/data
+port = 3306
+character-set-server = utf8
+default_storage_engine = InnoDB
+server-id = 1
+```
+
+### 5.初始化数据库
+```shell
+cd /usr/local/mysql
+mkdir tmp
+cd bin
+#初始化
+./mysqld --initialize --user=mysql --basedir=/usr/local/mysql --datadir=/usr/local/mysql/data
+#如果报错请根据报错安装对应依赖包
+#error while loading shared libraries: libnuma.so.1
+#yum -y install numactl.x86_64
+#error while loading shared libraries: libaio.so.1
+#yum -y install libaio
+#重新初始化
+```
+**执行完毕以后,信息最后一行会有初始密码**
+```shell
+# WXt2dhv#yi1c
+2018-12-27T08:35:15.056910Z 1 [Note] A temporary password is generated for root@localhost: WXt2dhv#yi1c
+```
+### 6.启动数据库服务
+```shell
+#启动mysql
+systemctl start mysqld
+systemctl status mysqld
+```
+
+### 7.登录及远程登录配置
+```shell
+#进入/usr/local/mysql/bin 下执行
+cd /usr/local/mysql/bin
+#连接服务
+./mysql -uroot -p
+#输入初始密码
+#mysql>
+#修改密码
+set password=password('新密码');
+#退出
+quit;
+#重新输入密码,看看是否生效
+#./mysql -uroot -p
+```
+```shell
+#开启远程登录
+#mysql>
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY '访问密码';
+#配置生效
+flush privileges;
+```
+### 8.安全组
+控制台查看安全组是否放行了mysql的端口3306(可以更改)。用client连接测试通过则完成。
+
 ## 三.FTP 安装
 ### 1.yum安装vsftpd
 ```shell
