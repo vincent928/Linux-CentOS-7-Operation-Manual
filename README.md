@@ -1,15 +1,28 @@
 # Linux __CentOS 7 Operation Manual
  ![](https://github.com/vincent928/Linux-CentOS-7-Operation-Manual/blob/master/pic/linux.jpg)
 
-
 * [Linux __CentOS 7 Operation Manual](#linux-__centos-7-operation-manual)
   * [一.基本指令](#一基本指令)
     * [1.进程服务相关操作](#1进程服务相关操作)
-* [查看监听端口号与对应服务名称](#查看监听端口号与对应服务名称)
+      * [1)systemctl](#1systemctl)
+      * [2)netstat](#2netstat)
     * [2.file相关操作](#2file相关操作)
+      * [1)tar](#1tar)
     * [3.vim相关操作](#3vim相关操作)
     * [4.下载相关操作](#4下载相关操作)
-  * [二.MySQL5.7 安装](#二mysql57-安装)
+      * [1)wget](#1wget)
+    * [5.用户相关操作](#5用户相关操作)
+      * [1)useradd](#1useradd)
+  * [二.MySQL5.7.24 安装](#二mysql5724-安装)
+    * [0.卸载系统自带的数据库](#0卸载系统自带的数据库)
+    * [1.mysql5.7.24安装](#1mysql5724安装)
+    * [2.mysql用户添加](#2mysql用户添加)
+    * [3.配置mysql服务](#3配置mysql服务)
+    * [4.配置mysql配置文件](#4配置mysql配置文件)
+    * [5.初始化数据库](#5初始化数据库)
+    * [6.启动数据库服务](#6启动数据库服务)
+    * [7.登录及远程登录配置](#7登录及远程登录配置)
+    * [8.安全组](#8安全组)
   * [三.FTP 安装](#三ftp-安装)
     * [1.yum安装vsftpd](#1yum安装vsftpd)
     * [2.配置文件](#2配置文件)
@@ -37,13 +50,14 @@
   * [九.Git+Node.js安装](#九gitnodejs安装)
   * [十.用户权限控制](#十用户权限控制)
 
-
 ----
 
 ## 一.基本指令
 ### 1.进程服务相关操作
 
-**systemctl就是service和chkconfig这两个命令的整合**
+#### 1)systemctl
+
+systemctl就是service和chkconfig这两个命令的整合
 
 任务|旧指令|新指令
 -|-|-
@@ -55,7 +69,7 @@ A服务状态|service A status|systemctl status A.service
 A服务停止|service A stop|systemctl stop A.service
 A服务重启|service A restart|systemctl restart A.service
 
-**netstat**
+#### 2)netstat
 ```shell
 # 查看监听端口号与对应服务名称
 netstat -antp
@@ -64,7 +78,9 @@ netstat -antp
 ![](https://github.com/vincent928/Linux-CentOS-7-Operation-Manual/blob/master/pic/filesystem.png)
 (https://www.cnblogs.com/123-/p/4189072.html)
 
-**tar** : **文件压缩解压缩相关**
+#### 1)tar
+
+tar文件压缩解压缩相关
 ```shell
 *.tar          用 tar -xvf 解压
 *.tar.gz/*.tgz 用 tar -zxzf 解压
@@ -81,7 +97,8 @@ netstat -antp
 (https://blog.csdn.net/hongwei15732623364/article/details/80591140)
 ### 4.下载相关操作
 
-**wget** : **主要用于下载**
+#### 1)wget
+wget主要用于下载
 ```shell
 wget [a] [c] url
 [a] : [c] : 说明
@@ -92,7 +109,8 @@ wget [a] [c] url
 ```
 ### 5.用户相关操作
 
-**useradd** : **用于用户建立**
+#### 1)useradd
+useradd用于用户建立
 ```shell
 useradd [-mMnr][-c <备注>][-d <登入目录>][-e <有效期限>][-f <缓冲天数>][-g <群组>][-G <群组>][-s <shell>][-u <uid>][用户帐号]
 ```
