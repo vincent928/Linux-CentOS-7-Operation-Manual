@@ -1,11 +1,14 @@
 # Linux __CentOS 7 Operation Manual
  ![](https://github.com/vincent928/Linux-CentOS-7-Operation-Manual/blob/master/pic/linux.jpg)
 
+
 * [Linux __CentOS 7 Operation Manual](#linux-__centos-7-operation-manual)
   * [一.基本指令](#一基本指令)
     * [1.进程服务相关操作](#1进程服务相关操作)
+* [查看监听端口号与对应服务名称](#查看监听端口号与对应服务名称)
     * [2.file相关操作](#2file相关操作)
     * [3.vim相关操作](#3vim相关操作)
+    * [4.下载相关操作](#4下载相关操作)
   * [二.MySQL5.7 安装](#二mysql57-安装)
   * [三.FTP 安装](#三ftp-安装)
     * [1.yum安装vsftpd](#1yum安装vsftpd)
@@ -15,12 +18,25 @@
     * [5.配置vsftpd](#5配置vsftpd)
     * [6.安全组设置](#6安全组设置)
     * [7.服务安全加固](#7服务安全加固)
+      * [1).禁用匿名登录服务](#1禁用匿名登录服务)
+      * [2).禁止显示Banner信息](#2禁止显示banner信息)
+      * [3).限制FTP登录用户](#3限制ftp登录用户)
+      * [4).限制FTP用户目录](#4限制ftp用户目录)
+      * [5).修改监听地址和默认端口](#5修改监听地址和默认端口)
+      * [6).启用日志记录](#6启用日志记录)
+      * [7).其他安全设置](#7其他安全设置)
   * [四.Redis 安装](#四redis-安装)
   * [五.RabbitMQ 安装](#五rabbitmq-安装)
   * [六.Nginx 安装](#六nginx-安装)
+    * [1.安装](#1安装)
+      * [1)环境安装](#1环境安装)
+      * [2)源码安装](#2源码安装)
+      * [3)Https](#3https)
   * [七.GitLab 安装](#七gitlab-安装)
   * [八.SVN 安装](#八svn-安装)
-  * [九.用户权限控制](#九用户权限控制)
+  * [九.Git+Node.js安装](#九gitnodejs安装)
+  * [十.用户权限控制](#十用户权限控制)
+
 
 ----
 
@@ -43,7 +59,20 @@ netstat
 netstat -antp
 ```
 ### 2.file相关操作
+![](https://github.com/vincent928/Linux-CentOS-7-Operation-Manual/blob/master/pic/filesystem.png)
+(https://www.cnblogs.com/123-/p/4189072.html)
 ### 3.vim相关操作
+(https://blog.csdn.net/hongwei15732623364/article/details/80591140)
+### 4.下载相关操作
+```shell
+#wget指令主要用于下载。
+wget [a] [c] url
+[a] : [c] : 说明
+  -c : - : 继续下载部分下载的文件
+  -O ：/var/xxx.zip : 下载,并保存文件至指定文件夹与文件名 
+  -b : - : 后台下载,可以使用 tail -f wget-log 查看进度
+  -S : - : 打印服务器响应,模拟下载,非真实下载,用于检查请求地址的网络状态 
+```
 ## 二.MySQL5.7 安装
 ## 三.FTP 安装
 ### 1.yum安装vsftpd
@@ -269,9 +298,149 @@ local_max_rate=81920
 ## 四.Redis 安装
 ## 五.RabbitMQ 安装
 ## 六.Nginx 安装
+### 1.安装
+#### 1)环境安装
+Nginx源码编译依赖gcc环境,若无gcc环境,需要运行以下命令先行安装
+```shell
+yum install -y gcc-c++
+```
+PCRE pcre-devel安装,nginx的http模块使用pcre来正则解析。
+```shell
+yum install -y pcre pcre-devel
+```
+zlib库提供了多种压缩和解压方式,nginx使用zlib对http包的内容进行gzip
+```shell
+yum install -y zlib zlib-devel
+```
+nginx提供了https协议,需要安装open-ssl
+```shell
+yum install -y openssl openssl-devel
+```
+#### 2)源码安装
+[官网下载](https://nginx.org/en/download.html)源码或者
+**wget下载**
+```shell
+wget -c https://nginx.org/download/nginx-1.14.2.tar.gz
+```
+**解压**
+```shell
+tar -zxf nginx-1.14.2
+```
+**默认配置**
+```shell
+#如果要支持https,需要增加https模块
+#./configure --with-http_ssl_module
+cd nginx-1.14.2
+./configure
+```
+**自定义配置**
+```shell
+#需要先创建文件夹
+cd nginx-1.14.2
+./configure \
+--prefix=/usr/local/nginx \
+--conf-path=/usr/local/nginx/conf/nginx.conf \
+--pid-path=/usr/local/nginx/conf/nginx.pid \
+--lock-path=/var/lock/nginx.lock \
+--error-log-path=/var/log/nginx/error.log \
+--http-log-path=/var/log/nginx/access.log \
+--with-http_gzip_static_module \
+--http-client-body-temp-path=/var/temp/nginx/client \
+--http-proxy-temp-path=/var/temp/nginx/proxy \
+--http-fastcgi-temp-path=/var/temp/nginx/fastcgi \
+--http-uwsgi-temp-path=/var/temp/nginx/uwsgi \
+--http-scgi-temp-path=/var/temp/nginx/scgi
+```
+**编译安装**
+```shell
+# cd nginx-1.14.2
+make
+make install
+#查找安装路径
+whereis nginx
+#/usr/local/nginx
+```
+**创建软连接**
+```shell
+ln -s /usr/local/nginx/sbin/nginx /usr/bin/nginx
+```
+**命令**
+```shell
+#设置软连接后,启动
+nginx
+#关闭 stop:此方法=查找进程id,kill 9 杀死进程 quit:等待nginx进程任务处理完后停止
+nginx -s stop
+nginx -s quit
+#重启 reload = nginx -s quit -> nginx
+nginx -s reload
+```
+**开机自启**
+```shell
+#在rc.local中添加自启
+vim /etc/rc.local
+#新增一行
+/usr/local/nginx/sbin/nginx
+#保存后,设置执行权限
+chmod 755 /etc/rc.local
+```
+#### 3)Https
+**检测nginx是否支持https**
+```shell
+nginx -V
+#nginx version:nginx/1.14.2
+#build by gcc 4.8.5 
+#configure arguments:
+```
+检查`configure arguments:`是否包含了-with-http_ssl_module模块,如果没有则需要重新编译。找到之前安装Nginx时的编译目录,配置ssl模块。
+```shell
+./configure --prefix=/usr/local/nginx --with-http_ssl_module --with-http_stub_status_module
+make
+#将初始执行命令备份
+mv /usr/local/nginx/sbin/nginx /usr/local/nginx/sbin/nginx.copy
+#将新编译后的执行脚本复制到sbin/下，代替原脚本
+cd objs/
+cp nginx /usr/local/nginx/sbin/nginx
+#升级
+cd ..
+make upgrade
+#查看模块是否安装成功
+nginx -V
+```
+**Https配置**
+修改配置文件
+```shell
+cd /usr/local/nginx/conf
+vim nginx.conf
+```
+**配置内容：**
+```shell
+ #HTTPS server
+
+ server {
+     listen       443 ssl; #开启ssl
+     server_name  localhost;  #域名
+
+     ssl_certificate      cert.pem; #SSL证书文件路径,由证书签发机构提供 
+     ssl_certificate_key  cert.key; #SLL密钥文件路径,由证书签发机构提供
+
+     ssl_session_cache    shared:SSL:1m;
+     ssl_session_timeout  5m;
+
+     ssl_ciphers  HIGH:!aNULL:!MD5;
+     ssl_prefer_server_ciphers  on;
+
+     location / {
+         root   html;
+         index  index.html index.htm;
+     }
+ }
+
+```
 ## 七.GitLab 安装
 ## 八.SVN 安装
-## 九.用户权限控制
+## 九.Git+Node.js安装
+(https://blog.csdn.net/coding01/article/details/80083033)
+## 十.用户权限控制
 
 
 
